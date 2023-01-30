@@ -1,18 +1,17 @@
 {
     "name": "adapt-blinds",
-    "repository": "git://github.com/danielstorey/adapt-blinds.git",
-    "framework": ">=3",
-    "version": "3.0.1",
-    "homepage": "https://github.com/danielstorey/adapt-blinds",
-    "issues": "https://github.com/danielstorey/adapt-blinds/issues",
+    "version": "1.0.0",
+    "framework": ">=5.8",
+    "homepage": "https://github.com/RobertPeek/adapt-blinds",
+    "issues": "https://github.com/RobertPeek/adapt-blinds/issues",
+    "description": "Horizontally stacked images which widen when selected, displaying optional text and playing audio.",
+    "main": "/js/adapt-blinds.js",
     "displayName": "Blinds",
     "component": "blinds",
-    "description": "Horizontally stacked images widen when hovered over. Optional captions are displayed. Demo available.",
-    "main": "/js/adapt-blinds.js",
     "keywords": [
         "adapt-blinds",
         "adapt-plugin",
         "adapt-component"
     ],
-    "license": "GPLv3"
+    "license": "GPL-3.0"
 }

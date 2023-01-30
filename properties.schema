@@ -1,123 +1,160 @@
 {
-    "type":"object",
-    "$schema": "http://json-schema.org/draft-04/schema",
-    "id": "http://jsonschema.net",
-    "$ref": "http://localhost/plugins/content/component/model.schema",
-    "globals": {
-        "ariaRegion": {
-            "type": "string",
-            "required": true,
-            "default": "",
-            "inputType": "Text",
-            "validators": []
-        }
+  "type":"object",
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "id": "http://jsonschema.net",
+  "$ref": "http://localhost/plugins/content/component/model.schema",
+  "globals": {
+    "ariaRegion": {
+      "type": "string",
+      "required": true,
+      "default": "This component contains selectable grid items. Select an item to display the associated text.",
+      "inputType": "Text",
+      "validators": [],
+      "translatable": true
+    }
+  },
+  "properties":{
+    "_supportedLayout": {
+      "type": "string",
+      "required": true,
+      "enum": ["full-width", "half-width", "both"],
+      "default": "both",
+      "editorOnly": true
     },
-    "properties":{
-        "_supportedLayout": {
-            "type": "string",
-            "required": true,
-            "enum": ["full-width", "half-width", "both"],
-            "default": "both",
-            "editorOnly": true
-        },
-        "instruction": {
+    "instruction": {
+      "type": "string",
+      "required": false,
+      "default": "",
+      "inputType": "Text",
+      "validators": [],
+      "help": "This is the instruction text"
+    },
+    "_setCompletionOn": {
+      "type": "string",
+      "required": true,
+      "enum": ["inview", "allItems"],
+      "default": "inview",
+      "title": "Set Completion of Blinds on",
+      "inputType": {"type": "Select", "options":["inview", "allItems"]},
+      "validators": ["required"],
+      "help": "This tells Adapt when to set the blinds component to complete."
+    },
+    "_height": {
+      "type": "number",
+      "required": false,
+      "default": 500,
+      "title": "Height",
+      "inputType": "Number",
+      "validators": ["number"],
+      "help": "The height in pixels. Defaults to 500 if this property is not defined."
+    },
+    "_items": {
+      "type": "array",
+      "required": false,
+      "title": "Blinds items",
+      "items": {
+        "type":"object",
+        "required": false,
+        "properties": {
+          "title": {
             "type": "string",
             "required": false,
             "default": "",
+            "title": "Item Display Title",
             "inputType": "Text",
             "validators": [],
-            "help": "This is the instruction text"
-        },
-        "_setCompletionOn": {
+            "help": "",
+            "translatable": true
+          },
+          "body": {
             "type":"string",
-            "required":true,
-            "enum": ["inview", "allItems"],
-            "default": "inview",
-            "title": "Set Completion on",
-            "inputType": {"type": "Select", "options":["inview", "allItems"]},
-            "validators": ["required"],
-            "help": "This tells Adapt when to set the blinds component to complete"
-        },
-        "height": {
+            "required": false,
+            "default": "",
+            "title": "Item Text",
+            "inputType": "TextArea",
+            "validators": [],
+            "translatable": true
+          },
+          "bodyReduced": {
+            "type":"string",
+            "required": false,
+            "default": "",
+            "title": "Item Reduced Text",
+            "inputType": "TextArea",
+            "validators": [],
+            "help": "Reduced body text displayed in the item.",
+            "translatable": true
+          },
+          "_top": {
             "type": "number",
             "required": false,
-            "default": 500,
-            "title": "Height",
+            "default": 10,
+            "title": "Position - Top",
             "inputType": "Number",
             "validators": ["number"],
-            "help": "The height in pixels. Defaults to 500 if this property is not defined."
-        },
-        "_expandBy": {
+            "help": "The position of the text in pixels from the top."
+          },
+          "_left": {
             "type": "number",
             "required": false,
-            "default": 2,
-            "title": "Expand by",
+            "default": 10,
+            "title": "Position - Left",
             "inputType": "Number",
             "validators": ["number"],
-            "help": "The amount to expand the blind by when hovering over it. Default is 2"
-        },
-        "_items": {
-            "type":"array",
-            "required":false,
-            "title": "Binds items",
-            "items": {
-                "type":"object",
-                "required":false,
-                "properties":{
-                    "src": {
-                        "type":"string",
-                        "required": true,
-                        "default": "",
-                        "title": "Select the image for this item",
-                        "inputType": "Asset:image",
-                        "validators": ["required"],
-                        "help": ""
-                    },
-                    "_captions": {
-                        "type":"array",
-                        "required":false,
-                        "title": "Caption items",
-                        "items": {
-                            "type":"object",
-                            "required":false,
-                            "properties":{
-                                "text": {
-                                    "type":"string",
-                                    "required": true,
-                                    "default": "",
-                                    "title": "Text",
-                                    "inputType": "Text",
-                                    "help": ""
-                                },
-                                "top": {
-                                    "type": "string",
-                                    "required": false,
-                                    "title": "",
-                                    "inputType": "Text",
-                                    "validators": [],
-                                    "help": "The vertical position of the caption. Can be given as a number or percentage."
-                                },
-                                "left": {
-                                    "type": "string",
-                                    "required": false,
-                                    "title": "",
-                                    "inputType": "Text",
-                                    "validators": [],
-                                    "help": "The horizontal position of the caption. Can be given as a number or percentage."
-                                },
-                                "width": {
-                                    "type": "string",
-                                    "required": false,
-                                    "title": "",
-                                    "inputType": "Text",
-                                    "validators": [],
-                                    "help": "The width of the caption. Can be given as a number or percentage."
-                                }
-                            }
-                        }
-                    }
-                }
+            "help": "The position of the text in pixels from the left."
+          },
+          "_width": {
+            "type": "number",
+            "required": false,
+            "default": 300,
+            "title": "Text Width",
+            "inputType": "Number",
+            "validators": ["number"],
+            "help": "The maximum width of the text in pixels."
+          },
+          "_graphic": {
+            "type": "object",
+            "required": false,
+            "title": "Graphic",
+            "properties": {
+              "_src": {
+                "type": "string",
+                "required": true,
+                "default": "",
+                "title": "Select the image for this item",
+                "inputType": "Asset:image",
+                "validators": ["required"]
+              },
+              "ariaLabel": {
+                "type": "string",
+                "required": false,
+                "default": "",
+                "title": "Image Aria Label",
+                "inputType": "Text",
+                "validators": [],
+                "translatable": true
+              }
             }
+          },
+          "_audio": {
+            "type": "object",
+            "required": false,
+            "title": "Audio",
+            "properties": {
+              "_src": {
+                "type": "string",
+                "required": false,
+                "default": "",
+                "title": "Select the audio for this item",
+                "inputType": "Asset:audio",
+                "validators": [],
+                "audioSources": ["_items/#/body"],
+                "audioConditions": []
+              }
+            }
+          }
         }
+      }
     }
+  }
 }

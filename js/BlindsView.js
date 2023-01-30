@@ -1,204 +1,242 @@
-define([
-    "core/js/adapt",
-    "core/js/views/componentView"
-], function(Adapt, ComponentView) {
+import Adapt from 'core/js/adapt';
+import ComponentView from 'core/js/views/componentView';
 
-    var Blinds = ComponentView.extend({
+class BlindsView extends ComponentView {
 
-        captionQueue: [],
-        ENTER_DELAY: 150,
-        ANIMATION_TIME: 400,
-        CAPTION_DELAY: 600,
+    events() {
+        return {
+            'click .blinds-item': 'onClick'
+        };
+    }
 
-        events: {
-            "mouseenter .blinds-item": "onMouseEnter",
-            "mouseleave .blinds-items": "onMouseLeave",
-            "click .blinds-item": "onClick"
-        },
+    preRender() {
+        this.listenTo(Adapt, "device:resize", this.resetItems, this);
+        this.listenTo(Adapt, "device:changed", this.setDeviceSize, this);
+        this.listenTo(Adapt, "audio:changeText", this.replaceText);
 
-        preRender: function() {
-            this.listenTo(Adapt, "device:resize", this.calculateWidths, this);
-            if (!this.model.get("_expandBy")) {
-                this.model.set("_expandBy", 2);
-            }
-        },
+        this.setDeviceSize();
+    }
 
-        postRender: function() {
-            this.$(".blinds-inner").imageready(_.bind(function() {
-                this.setupBlinds();
-                this.setReadyStatus();
-            }, this));
-        },
+    setDeviceSize() {
+        if (Adapt.device.screenSize === "large") {
+            this.$el.addClass("desktop").removeClass("mobile");
+            this.model.set("_isDesktop", true);
+        } else {
+            this.$el.addClass("mobile").removeClass("desktop");
+            this.model.set("_isDesktop", false)
+        }
+    }
 
-        setupBlinds: function() {
-            this.calculateWidths();
-            this.setupEventListeners();
-        },
+    postRender() {
+        this.renderState();
 
-        setupEventListeners: function() {
-            this.completionEvent = this.model.get("_setCompletionOn") || "allItems";
+        this.$(".blinds__inner").imageready(_.bind(function () {
+            this.setReadyStatus();
+        }, this));
 
-            if (this.completionEvent === "inview") {
-                this.$(".component-widget").on("inview", _.bind(this.inview, this));
-            }
-        },
+        if (this.model.get('_setCompletionOn') === 'inview') {
+            this.setupInviewCompletion();
+        }
 
-        onMouseEnter: function(e) {
-            if (Adapt.device.screenSize !== "large") {
-                return;
-            }
+        this.setupBlinds();
 
-            this.queuedIndex = null;
-            var index = $(e.currentTarget).index();
+        if (Adapt.course.get('_audio') && Adapt.course.get('_audio')._reducedTextisEnabled && this.model.get('_audio') && this.model.get('_audio')._reducedTextisEnabled) {
+            this.replaceText(Adapt.audio.textSize);
+        }
+    }
 
-            this.hideCaptions();
-            clearTimeout(this.enterTimeout);
+    setupBlinds() {
+        if (!this.model.has("_items") || !this.model.get("_items").length) return;
 
-            if (this.isAnimating) {
-                this.queuedIndex = index;
-            } else {
-                this.enterTimeout = setTimeout(_.bind(function() {
-                    this.expandBlind(index);
-                }, this), this.ENTER_DELAY)
-            }
+        this.model.set("_itemCount", this.model.get("_items").length);
+        this.model.set("_active", true);
 
-            this.model.getItem(index).toggleVisited(true);
-            this.model.checkCompletionStatus();
-        },
+        this.calculateWidths();
+        this.setupEventListeners();
+    }
 
-        onMouseLeave: function() {
-            if (Adapt.device.screenSize !== "large") {
-                return;
-            }
+    calculateWidths() {
+        this.$(".blinds-item").height(this.model.get("_height"));
 
-            clearTimeout(this.enterTimeout);
-            clearTimeout(this.delayedEnterTimeout);
-            this.queuedIndex = null;
-            this.isAnimating = false;
-            this.hideCaptions();
-            this.$(".blinds-item").width(this.itemWidth);
-        },
+        var wTotal = this.$(".blinds__container").width();
+        var $items = this.$(".blinds-item");
+        var wItem = 100 / $items.length;
+        this.itemWidth = wItem;
+        $items.outerWidth(wItem + "%");
+        this.model.set("_width", this.$(".blinds__container").width());
+    }
 
-        onClick: function(e) {
-            if (Adapt.device.screenSize === "large") {
-                return;
-            }
+    onClick(event) {
+        event.preventDefault();
 
-            var index = $(e.currentTarget).index();
-            if (index === this.currentItemIndex) {
-                this.hideCaptions();
-            } else {
-                this.currentItemIndex = index;
-                this.displayCaptions(index, 0);
-                this.model.getItem(index).toggleVisited(true);
-                this.model.checkCompletionStatus();
-            }
-        },
+        this.resetItems();
 
-        expandBlind: function(index) {
-            this.isAnimating = true;
-            var $blind = this.$getElement(index);
-            var $siblings = $blind.siblings();
-            $blind.width(this.itemExpandedWidth);
-            $siblings.width(this.itemCollapsedWidth);
-            this.displayCaptions(index, this.ANIMATION_TIME + this.ENTER_DELAY);
+        var currentItem = $(event.currentTarget);
 
-            this.delayedEnterTimeout = setTimeout(_.bind(function() {
-                this.isAnimating = false;
-                if (typeof this.queuedIndex === "number") {
-                    this.expandBlind(this.queuedIndex);
-                    this.queuedIndex = null;
-                }
-            }, this), this.ANIMATION_TIME + 200);
-        },
+        this.showItem(currentItem);
+    }
 
-        displayCaptions: function(index, delay) {
-            var $blind = this.$getElement(index);
-            var $captions = $blind.find(".blinds-caption").show();
-            var item = this.model.getItem(index);
-            var captions = item.get("_captions");
-            var currTop = 10;
+    showItem(currentItem) {
+        var $items = this.$(".blinds-item");
+        var _items = this.model.get("_items");
+        var wItem = this.itemWidth;
 
-            _.each(this.captionQueue, clearTimeout);
+        var captionDelay = this.model.has("captionDelay") ? this.model.get("captionDelay") : 800;
+        var wTotal = this.$(".blinds__container").width();
 
-            _.each($captions, function(el, i) {
-                var t = delay + (i * this.CAPTION_DELAY);
-                var caption = captions[i];
-                var left = parseInt(caption.left) || 0;
-                var top = caption.top;
+        var itemIndex = currentItem.index();
+        var _item = _items[itemIndex];
+        var $siblings = currentItem.siblings();
+        var $p = currentItem.find(".blinds-text");
+        var wItemNew = wItem;
+        var wSiblingsNew = 30 / $siblings.length;
 
-                if (!top && i === 0) {
-                    top = 0;
-                }
+        var widthOpen = 70;
 
-                var width = caption.width || this.itemExpandedWidth + "px";
+        wItemNew = widthOpen;
 
-                this.captionQueue[i] = setTimeout(function() {
-                    if (top === undefined || top === "") {
-                        top = $captions.eq(i - 1).outerHeight() + currTop + 10;
-                    }
-                    currTop = parseInt(top);
+        currentItem.outerWidth(widthOpen + "%");
 
-                    $(el).css({
-                        opacity: 1,
-                        top: top,
-                        left: left,
-                        maxWidth: width
-                    });
-                }, t);
-            }, this);
-        },
+        this.setStage(itemIndex);
 
-        hideCaptions: function() {
-            _.each(this.captionQueue, clearTimeout);
-            this.$(".blinds-caption").hide().css("opacity", 0);
-        },
+        currentItem.addClass("is-selected");
 
-        $getElement: function(index) {
-            return this.$(".blinds-item").eq(index);
-        },
+        var left = _item._left || 0;
+        var top = _item._top;
+        var width = _item._width || wItem + "%";
 
-        calculateWidths: function() {
-            var $blinds = this.$(".blinds-item");
+        $p.removeClass('is-hidden aria-hidden is-disabled').attr("tabindex", 0)
+        $p.removeAttr('aria-hidden')
+        $p.removeAttr('aria-disabled');
 
-            if (this.model.get("height")) {
-                $blinds.height(this.model.get("height"));
-            }
+        if (this.model.get("_isDesktop")) {
+            $p.css({
+                top: top,
+                left: left,
+                maxWidth: width,
+                maxHeight: this.model.get("_height") - 20
+            });
+        } else {
+            $p.css({
+                top: 0,
+                left: 0,
+                right: 0,
+                maxWidth: "none"
+            });
+        }
 
-            var wTotal = this.$(".blinds-container").width();
-            this.itemWidth = wTotal / $blinds.length;
-            this.itemExpandedWidth = this.itemWidth * this.model.get("_expandBy");
-            this.itemCollapsedWidth = (wTotal - this.itemExpandedWidth) / ($blinds.length - 1);
+        $siblings.outerWidth(wSiblingsNew + "%");
 
-            $blinds.width(this.itemWidth);
-        },
+        this.focusOnBlindElement(itemIndex);
 
-        inview: function(event, visible, visiblePartX, visiblePartY) {
-            if (visible) {
-                if (visiblePartY === "top") {
-                    this._isVisibleTop = true;
-                } else if (visiblePartY === "bottom") {
-                    this._isVisibleBottom = true;
+        ///// Audio /////
+        if (Adapt.course.get('_audio') && Adapt.course.get('_audio')._isEnabled && this.model.has('_audio') && this.model.get('_audio')._isEnabled && Adapt.audio.audioClip[this.model.get('_audio')._channel].status == 1) {
+            // Reset onscreen id
+            Adapt.audio.audioClip[this.model.get('_audio')._channel].onscreenID = "";
+            // Trigger audio
+            Adapt.trigger('audio:playAudio', _item._audio._src, this.model.get('_id'), this.model.get('_audio')._channel);
+        }
+        ///// End of Audio /////
+    }
+
+    focusOnBlindElement(itemIndex) {
+        const dataIndexAttr = `[data-index='${itemIndex}']`;
+        const $elementToFocus = this.$(`.blinds-text${dataIndexAttr}`);
+        Adapt.a11y.focusFirst($elementToFocus);
+    }
+
+    resetItems() {
+        this.$(".blinds-text").addClass('is-hidden').attr('aria-hidden', 'true').attr('aria-disabled', 'true');
+
+        var wTotal = this.$(".blinds__container").width();
+        var $items = this.$(".blinds-item");
+        var wItem = 100 / $items.length;
+        this.itemWidth = wItem;
+        $items.outerWidth(wItem + "%");
+        this.model.set("_width", this.$(".blinds__container").width());
+
+        this.$(".blinds-item").removeClass("is-selected");
+
+        ///// Audio /////
+        if (Adapt.course.get('_audio') && Adapt.course.get('_audio')._isEnabled && this.model.has('_audio') && this.model.get('_audio')._isEnabled) {
+            Adapt.trigger('audio:pauseAudio', this.model.get('_audio')._channel);
+        }
+        ///// End of Audio /////
+    }
+
+    setStage(stage) {
+        // Reset accessibility
+        for (var i = 0; i < this.model.get('_items').length; i++) {
+            var $item = this.$('.blinds-item').eq(i);
+            var $itemText = $item.find('.blinds-text');
+            Adapt.a11y.toggleAccessibleEnabled($itemText, false);
+        }
+
+        this.model.set("_stage", stage);
+
+        var $item = this.$('.blinds-item').eq(stage);
+        var $itemText = $item.find('.blinds-text');
+
+        //this.setVisited(stage);
+        this.model.checkCompletionStatus();
+        this.model.getItem(stage).toggleVisited(true);
+        $item.addClass("is-visited");
+
+        // Update accessibility
+        var a11y = Adapt.config.get('_accessibility');
+        if (!a11y || !a11y._isActive) return;
+        _.delay(function () {
+            Adapt.a11y.toggleAccessibleEnabled($itemText, true);
+            $itemText.a11y_focus();
+        }, 500);
+    }
+
+    getVisitedItems() {
+        return _.filter(this.model.get("_items"), function (item) {
+            return item._isVisited;
+        });
+    }
+
+    getCurrentItem(index) {
+        return this.model.get("_items")[index];
+    }
+
+    evaluateCompletion() {
+        if (this.getVisitedItems().length === this.model.get("_items").length) {
+            this.trigger("allItems");
+        }
+    }
+
+    onCompletion() {
+        this.setCompletionStatus();
+        if (this.completionEvent && this.completionEvent != "inview") {
+            this.off(this.completionEvent, this);
+        }
+    }
+
+    setupEventListeners() {
+        this.completionEvent = (!this.model.get('_setCompletionOn')) ? 'allItems' : this.model.get('_setCompletionOn');
+        if (this.completionEvent !== 'inview' && this.model.get('_items').length > 1) {
+            this.on(this.completionEvent, _.bind(this.onCompletion, this));
+        }
+    }
+
+    // Reduced text
+    replaceText(value) {
+        // If enabled
+        if (Adapt.course.get('_audio') && Adapt.course.get('_audio')._reducedTextisEnabled && this.model.get('_audio') && this.model.get('_audio')._reducedTextisEnabled) {
+            // Change each items body
+            for (var i = 0; i < this.model.get('_items').length; i++) {
+                if (value == 0) {
+                    this.$('.blinds-text').eq(i).html(this.model.get('_items')[i].body);
                 } else {
-                    this._isVisibleTop = true;
-                    this._isVisibleBottom = true;
+                    this.$('.blinds-text').eq(i).html(this.model.get('_items')[i].bodyReduced);
                 }
-
-                if (this._isVisibleTop && this._isVisibleBottom) {
-                    this.$(".component-inner").off("inview");
-                    this.setCompletionStatus();
-                }
-            }
-        },
-
-        onCompletion: function() {
-            this.setCompletionStatus();
-            if (this.completionEvent && this.completionEvent != "inview") {
-                this.off("inview", this);
             }
         }
-    });
+    }
+}
 
-    return Blinds;
+BlindsView.template = 'blinds.jsx';
 
-});
+export default BlindsView;

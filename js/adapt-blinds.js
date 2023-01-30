@@ -1,12 +1,8 @@
-define([
-    "core/js/adapt",
-    "core/js/models/itemsComponentModel",
-    "./BlindsView"
-], function(Adapt, ItemsComponentModel, BlindsView) {
+import Adapt from 'core/js/adapt';
+import BlindsModel from './blindsModel';
+import BlindsView from './blindsView';
 
-    return Adapt.register("blinds", {
-        view: BlindsView,
-        model: ItemsComponentModel
-    });
-
+export default Adapt.register('blinds', {
+    model: BlindsModel,
+    view: BlindsView
 });

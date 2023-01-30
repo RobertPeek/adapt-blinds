@@ -1,68 +1,109 @@
-.blinds-inner {
+.blinds {
 
-	* {
-		box-sizing: border-box;
-	}
-
-    .blinds-widget {
-        margin: 0 -4px;
+    &__container {
+        overflow: hidden;
     }
 
-	.blinds-container {
-		overflow: hidden;
-	}
+    .blinds-item {
+        float: left;
 
-	.blinds-items {
-        overflow: hidden;
-        white-space: nowrap;
-	}
-
-	.blinds-item {
-		position: relative;
-		height: 500px;
-		-webkit-transition: width 0.4s;
-		-moz-transition: width 0.4s;
-		-ms-transition: width 0.4s;
-		-o-transition: width 0.4s;
-		transition: width 0.4s;
-
-        .blinds-item-inner {
-            height: 100%;
-            padding: 10px;
-            margin: 0 4px;
-            -webkit-background-size: auto 100%;
-            background-size: auto 100%;
-            background-position: center;
-            background-repeat: no-repeat;
+        .dir-rtl & {
+            float: right;
         }
 
-        .blinds-captions {
-            position: relative;
-        }
+        position: relative;
 
-        .blinds-caption {
+        border: 3px solid @item-color;
+
+        .blinds-item-overlay {
+            background: @item-color;
             opacity: 0;
-            position: absolute;
-            margin: 0;
-            padding: 8px;
-            background: #fff;
-            color: #000;
-            border: 2px solid #000;
-            white-space: normal;
-            -webkit-transition: opacity 0.4s;
-            -moz-transition: opacity 0.4s;
-            -ms-transition: opacity 0.4s;
-            -o-transition: opacity 0.4s;
-            transition: opacity 0.4s;
+            width: 100%;
+            height: 100%;
         }
 
-        html.size-large & {
-            display: inline-block;
+        &:hover {
+            border: 3px solid @item-color-hover  !important;
+
+            .blinds-item-overlay {
+                opacity: 0 !important;
+            }
         }
 
-        html.size-medium &, html.size-small & {
-            width: auto !important;
-            margin-bottom: 10px;
+        &.is-visited {
+            border: 3px solid @visited;
+
+            .blinds-item-overlay {
+                opacity: 0.5;
+            }
         }
-	}
+
+        &.is-selected {
+            border: 3px solid @item-color-hover;
+
+            .blinds-item-overlay {
+                opacity: 0 !important;
+            }
+        }
+
+        -webkit-background-size: auto 100%;
+        background-size: auto 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+        -webkit-transition: width 0.4s;
+        -moz-transition: width 0.4s;
+        -ms-transition: width 0.4s;
+        -o-transition: width 0.4s;
+        transition: width 0.4s;
+    }
+
+    .blinds-caption {
+        position: relative;
+    }
+
+    .blinds-text {
+        position: absolute;
+        padding: @component-body-margin;
+        background: @font-color-inverted;
+        color: @font-color;
+        overflow-y: auto;
+
+        text-align: left;
+
+        .dir-rtl & {
+            text-align: right;
+        }
+
+        &.is-hidden {
+            display: none;
+        }
+    }
+
+    .blinds-item-title {
+        padding-bottom: @component-body-margin;
+        .item-title;
+    }
+
+    .blinds-item-body {
+        font-size: @body-size;
+        font-weight: @body-weight;
+        line-height: @body-line-height;
+    }
+}
+
+.blinds.mobile {
+    .blinds-items {
+        width: auto;
+    }
+
+    .blinds-item {
+        width: 100% !important;
+        background-size: cover;
+        margin: @item-margin;
+    }
+
+    .blinds-text {
+        margin: @component-body-margin;
+        width: auto !important;
+    }
 }

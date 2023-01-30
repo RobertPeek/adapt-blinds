@@ -1,51 +1,63 @@
 # adapt-blinds
 
-<img align="right" src="https://raw.githubusercontent.com/danielstorey/adapt-resources/master/blinds-demo.jpg" alt="blinds in action">
-**Blinds** is a *presentation component* Created by Dan storey.
+**Blinds** is a *presentation component* created by Dan storey for the [Adapt framework](https://github.com/adaptlearning/adapt_framework).
 
-When a learner hovers on one of the images, it widens and the other images narrow accordingly. If set, then an array of captions will appear. Positions and timings of these can be customised.
+When a learner selects one of the images, it widens and the other images narrow accordingly. If set, text will appear and audio will play, if enabled.  
 
-[**Click here for an interactive demo**](https://danielstorey.github.io/adapt-demo-course/#/id/co-main)
+## Installation
 
-##Installation
+This component must be manually installed.
 
-Run the following from the command line: `adapt install adapt-blinds`
+If **Blinds** has been uninstalled from the Adapt authoring tool, it may be reinstalled using the [Plug-in Manager](https://github.com/adaptlearning/adapt_authoring/wiki/Plugin-Manager).  
 
 ## Settings Overview
 
-The attributes listed below are used in *components.json* to configure **Blinds**, and are properly formatted as JSON in [*example.json*](https://github.com/danielstorey/adapt-blinds/example.json).
+The attributes listed below are used in *components.json* to configure **Blinds**, and are properly formatted as JSON in [*example.json*](https://github.com/RobertPeek/adapt-blinds/example.json).  
 
 ### Attributes
 
-**_component** (string): This value must be: `blinds`. (One word.)
+**_component** (string): This value must be: `blinds`.  
 
-**_setCompletionOn** (string): This value determines when the component registers as complete. Acceptable values are `"allItems"` and `"inview"`. `"allItems"` requires each blind to be visited. `"inview"` requires the **Blinds** component to enter the view port completely.
+**_setCompletionOn** (string): This value determines when the component registers as complete. Acceptable values are `"allItems"` and `"inview"`. `"allItems"` requires each blind to be visited. `"inview"` requires the **Blinds** component to enter the view port completely.  
 
-**height** (number): Height in pixels. Defaults to 500 if this property is not defined.
+**_height** (number): Height in pixels. Defaults to 500 if this property is not defined.  
 
-**_expandBy** (number): The amount to expand the blind by when hovering over it. Defaults is 2 (width of the blind doubles).
+**_items** (string): Each item represents one image for this component and contains values for **title**, **body**, **bodyReduced**, **_top**, **_left**, **_width**, **_graphic**, and **_audio**.  
 
-**_items** (string): Each item represents one image for this component and contains values for **_graphic** and **captions**.
+>**title** (string): This text becomes the item title.  
 
->**src** (string): The image to be used for the blind item. Since the image is used as a background image for a `div` no src, alt or title attributes are required
+>**body** (string): This text becomes the item body text.  
 
->**_captions** (array): An optional array of captions for the image.
+>**bodyReduced** (string): This text displays in the text box when the [audio](https://github.com/RobertPeek/adapt-audio) text size is set to reduced.  
 
->>**text** (string): Each caption must have a **_text** property. This is the text to be displayed inside the caption.
+>**_top** (number): Specify the position of the caption from the top in pixels. Default is 10.   
 
->>**top** (mixed): Each caption can contain optional **top**, **left** and **width** values to position them on the image. Values can be given as a number or string. A number will be interpreted as pixels but a string value may be used to specify a percentage (eg. "20%"). Default is 0. Multiple captions appear 10px below the previous one unless this value is specified.
+>**_left** (number): Specify the position of the caption from the left in pixels. Default is 10.  
 
->>**left** (mixed): Specify the position of the caption from the left. Value can be given as a number or a string. Default is 0;
+>**_width** (number): Specify the max width of the caption in pixels. Default is 300.   
 
->>**width** (mixed): Specify the max width of the caption. Value can be given as a string or a number. Default behaviour is to fit the width of the text
+>**_graphic** (object): This `_graphic` attributes group stores the graphic properties for the item. It contains values for **_src** and **ariaLabel**.  
+
+>>**_src** (string): The image to be used for the blind item. Since the image is used as a background image for a `div` no src, alt or title attributes are required.  
+
+>>**ariaLabel** (string): This text becomes the image’s `aria label` attribute.  
+
+>**_audio** (object): This `_audio` attributes group stores the audio properties for the item. It contains values for **_src**.  
+
+>>**_src** (string): File name (including path) of the audio for the item. Path should be relative to the *src* folder.
 
 ### Accessibility
-
-
+Several elements of **Blinds** have been assigned a label using the [aria-label](https://github.com/adaptlearning/adapt_framework/wiki/Aria-Labels) attribute: **Blinds**. These labels are not visible elements. They are utilized by assistive technology such as screen readers. Should the label texts need to be customised, they can be found within the **globals** object in [*properties.schema*](https://github.com/RobertPeek/adapt-blinds/blob/master/properties.schema).   
+<div float align=right><a href="#top">Back to Top</a></div>
 
 ## Limitations
 
-Viewport sizing
+No known limitations.
 
 ----------------------------
-**Author / maintainer:** Dan Storey
+**Version number:**  1.0.0
+**Framework versions supported:**  5.8+
+**Author / maintainer:** Dan Storey / Robert Peek
+**Accessibility support:** Yes
+**RTL support:** Yes
+**Authoring tool support:** Yes
